@@ -3,7 +3,21 @@ from hashlib import md5
 from flask import Blueprint, Response, request, current_app, g
 from .blobatar import blobatar as _blobatar
 from .traits import traits as _traits
-from .hash import fnv1a
+
+def _etag(body: str) -> str:
+    """FNV-1a over UTF-16 code units, base36 — matches apps/api avatar.ts etag()."""
+    h = 0x811C9DC5
+    units = body.encode("utf-16-le")
+    for i in range(0, len(units), 2):
+        h ^= units[i] | (units[i + 1] << 8)
+        h = (h * 0x01000193) & 0xFFFFFFFF
+    digits = "0123456789abcdefghijklmnopqrstuvwxyz"
+    out = []
+    while h:
+        h, r = divmod(h, 36)
+        out.append(digits[r])
+    return '"' + ("".join(reversed(out)) or "0") + '"'
+
 
 blobatar_bp = Blueprint("blobatar", __name__)
 
@@ -28,20 +42,7 @@ def _error(status, message):
 
 def _svg_response(svg, gen=None):
     body = svg.encode("utf-8")
-    h = fnv1a(body.decode())
-    # FNV-1a → unsigned → base36 (matches upstream `${(h >>> 0).toString(36)}`)
-    val = h & 0xFFFFFFFF
-    digits = "0123456789abcdefghijklmnopqrstuvwxyz"
-    etag = '"'
-    if val == 0:
-        etag += "0"
-    else:
-        buf = []
-        while val > 0:
-            val, r = divmod(val, 36)
-            buf.append(digits[r])
-        etag += "".join(reversed(buf))
-    etag += '"'
+    etag = _etag(svg)
     pinned = GEN_PARAM in request.args
     cache = "public, max-age=31536000, immutable" if pinned else \
             "public, max-age=86400, stale-while-revalidate=2592000"
