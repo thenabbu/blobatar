@@ -68,11 +68,11 @@ def blobatar(name, size=None, background=None, hue=None, tone=None,
 
     if cls:
         wrap_g = f' transform="{wrap}"' if wrap else ''
-        svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"{dim}{style}{data_attrs}>{label}{bg}<g class="{cls}"{wrap_g}>{inner}</g></svg>'
+        svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"{dim}{style}>{label}{bg}<g class="{cls}"{wrap_g}>{inner}</g></svg>'
     else:
         wrap_g = f'<g transform="{wrap}">' if wrap else ''
         wrap_end = '</g>' if wrap else ''
-        svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"{dim}{style}{data_attrs}>{label}{bg}{wrap_g}{inner}{wrap_end}</svg>'
+        svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"{dim}{style}>{label}{bg}{wrap_g}{inner}{wrap_end}</svg>'
     return svg
 
 
